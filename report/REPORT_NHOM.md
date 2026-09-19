@@ -125,7 +125,8 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 ## 4. Thuyết trình (Demo) & Bài học nhóm — Nhóm (5 điểm)
 
 **Những phân tích (insights) hay nhất nhóm sẽ trình bày:**
-> - A/B query VinUni cho thấy filter `audience=student` đưa chunk chứa đáp án vào top-3; khi bỏ filter, top-3 bị lẫn tài liệu faculty/all.
+> - HeadingChunker tạo 18 chunks (so với Recursive 23 chunks) và đưa chunk chứa đáp án gia hạn Asia vào top-3.
+> - A/B query VinUni cho thấy filter `audience=student` đưa chunk chứa đáp án lên top-1; khi bỏ filter, chunk faculty sai đối tượng đứng top-1.
 > - Không thể chỉ chấm theo `doc_id`: benchmark kiểm chuỗi đáp án trong nội dung chunk, vì một chunk cùng tài liệu chưa chắc chứa số liệu cần trả lời.
 > - Kết quả hiện tại dùng MockEmbedder nên cần chạy lại bằng embedding thật trước khi kết luận chiến lược thắng.
 

@@ -103,13 +103,13 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 | # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan không? (Relevant) | Câu trả lời của Agent (tóm tắt) |
 |---|-------|--------------------------------|-------|-----------|------------------------|
-| 1 | Hạn mức mượn VinUni | VinUni student, chunk 0 | 0.789 | Có, top-1 | Context chứa gold; 2/2 |
-| 2 | Hạn mức giảng viên VinUni | VinUni faculty, chunk 0 | 0.867 | Có, top-1 | Context chứa gold; 2/2 |
-| 3 | Gia hạn Asia University Vietnam | Asia, chunk 0 | 0.595 | Không | Chunk gold bị tách, không ở top-3 |
-| 4 | Phạt quá hạn Học viện Ngoại giao | Asia, PVU, DAV | 0.709 | Không | Chunk DAV ở top-3 nhưng không chứa mức phạt |
-| 5 | PVU xử lý trễ trên một tháng | PVU, chunk 0 | 0.728 | Không | Chunk có đáp án không ở top-3 |
+| 1 | Hạn mức mượn VinUni | VinUni student, chunk 0 | 0.783 | Có, top-1 | Context chứa gold; 2/2 |
+| 2 | Hạn mức giảng viên VinUni | VinUni faculty, chunk 0 | 0.857 | Có, top-1 | Context chứa gold; 2/2 |
+| 3 | Gia hạn Asia University Vietnam | Asia, chunk 0; gold ở chunk 1 | 0.585 | Có, top-3 | Heading giữ mục “Hạn mức và gia hạn”; 1/2 |
+| 4 | Phạt quá hạn Học viện Ngoại giao | Asia, PVU, DAV | 0.663 | Không | Chunk DAV ở top-3 nhưng không chứa mức phạt |
+| 5 | PVU xử lý trễ trên một tháng | PVU, chunk 0 | 0.747 | Không | Chunk có đáp án không ở top-3 |
 
-**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 2 / 5
+**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 3 / 5
 
 > Benchmark dùng `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384 chiều). Failure case còn lại cho thấy similarity theo nghĩa vẫn có thể ưu tiên chunk đúng chủ đề nhưng thiếu số liệu; vì vậy nhóm chấm bằng marker nội dung, không chỉ theo doc_id.
 

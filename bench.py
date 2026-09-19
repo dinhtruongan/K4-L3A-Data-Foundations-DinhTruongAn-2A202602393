@@ -12,8 +12,42 @@ from src.models import Document
 from src.store import EmbeddingStore
 
 DATA_DIR = Path("data/library_services")
-# Personal strategy: change only this line when comparing a different chunker.
-CHUNKER = RecursiveChunker(chunk_size=450)
+
+
+class HeadingChunker:
+    """Keep each Markdown heading section intact; split only long sections."""
+
+    def __init__(self, chunk_size: int = 600) -> None:
+        self.chunk_size = chunk_size
+        self.fallback = RecursiveChunker(chunk_size=chunk_size)
+
+    def chunk(self, text: str) -> list[str]:
+        sections = []
+        current_heading = ""
+        current_lines: list[str] = []
+        for line in text.splitlines():
+            if line.startswith("#"):
+                if current_lines:
+                    sections.append((current_heading, "\n".join(current_lines).strip()))
+                current_heading = line.strip()
+                current_lines = [line]
+            else:
+                current_lines.append(line)
+        if current_lines:
+            sections.append((current_heading, "\n".join(current_lines).strip()))
+
+        chunks: list[str] = []
+        for heading, section in sections:
+            if len(section) <= self.chunk_size:
+                chunks.append(section)
+            else:
+                for piece in self.fallback.chunk(section):
+                    chunks.append(piece if piece.startswith("#") else f"{heading}\n{piece}")
+        return [chunk for chunk in chunks if chunk]
+
+
+# Personal strategy: switch this line for a controlled comparison.
+CHUNKER = HeadingChunker(chunk_size=600)
 
 BENCHMARKS = [
     {
