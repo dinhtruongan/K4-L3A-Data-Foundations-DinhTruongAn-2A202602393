@@ -1,8 +1,8 @@
 # Báo Cáo Cá Nhân — Lab 7: Embedding & Vector Store
 
-**Họ tên:** [Tên sinh viên]
-**Nhóm:** [Tên nhóm]
-**Ngày:** [Ngày nộp]
+**Họ tên:** Đinh Trường An
+**Nhóm:** G24
+**Ngày:** 19/9/2026
 
 > **Nộp 1 bản / sinh viên.** Phần nhóm (lựa chọn tài liệu, thiết kế chiến lược, bộ câu hỏi đánh giá, demo) nộp chung 1 bản trong `REPORT_NHOM.md`. Chi tiết thang điểm: `docs/SCORING.md`.
 
@@ -15,29 +15,29 @@
 ### Độ tương tự Cosine (Cosine Similarity) (Bài tập 1.1)
 
 **Độ tương tự cosine cao (High cosine similarity) nghĩa là gì?**
-> *Viết 1-2 câu:*
+> Cosine cao nghĩa là hai vector embedding hướng gần nhau, nên hai câu có nội dung/ngữ nghĩa gần nhau. Điểm gần 1 biểu thị mức tương đồng cao.
 
 **Ví dụ có độ tương tự CAO:**
-- Câu A:
-- Câu B:
-- Tại sao tương đồng:
+- Câu A: Sinh viên cần trả sách thư viện trước ngày đến hạn.
+- Câu B: Người học phải hoàn trả tài liệu đúng hạn.
+- Tại sao tương đồng: Khác từ vựng nhưng cùng nói về nghĩa vụ trả tài liệu đúng hạn.
 
 **Ví dụ có độ tương tự THẤP:**
-- Câu A:
-- Câu B:
-- Tại sao khác:
+- Câu A: Giảng viên được mượn tối đa năm tài liệu.
+- Câu B: Thư viện mở cửa từ thứ Hai đến thứ Sáu.
+- Tại sao khác: Một câu nói về hạn mức mượn, câu kia nói về giờ phục vụ.
 
 **Tại sao độ tương tự cosine (cosine similarity) được ưu tiên hơn khoảng cách Euclid (Euclidean distance) cho text embeddings?**
-> *Viết 1-2 câu:*
+> Cosine đo góc giữa các vector nên ít bị ảnh hưởng bởi độ dài văn bản/vector. Đây là đặc tính phù hợp với embedding đã chuẩn hóa, nơi hướng vector biểu diễn ý nghĩa tốt hơn độ lớn tuyệt đối.
 
 ### Bài toán tính toán Chunking (Bài tập 1.2)
 
 **Tài liệu 10,000 ký tự, chunk_size=500, overlap=50. Bao nhiêu chunks?**
-> *Trình bày phép tính:*
-> *Đáp án:*
+> Phép tính: ceil((10.000 − 50) / (500 − 50)) = ceil(9.950 / 450) = 23.
+> Đáp án: 23 chunks.
 
 **Nếu độ chồng chéo (overlap) tăng lên 100, số lượng chunk thay đổi thế nào? Tại sao muốn độ chồng chéo nhiều hơn?**
-> *Viết 1-2 câu:*
+> Với overlap 100: ceil((10.000 − 100) / (500 − 100)) = ceil(9.900 / 400) = 25 chunks. Overlap lớn giữ được ngữ cảnh ở ranh giới chunk, đổi lại tốn thêm lưu trữ và embedding.
 
 ---
 
@@ -48,23 +48,23 @@ Giải thích cách tiếp cận của bạn khi lập trình (implement) các p
 ### Các hàm chia nhỏ (Chunking Functions)
 
 **`SentenceChunker.chunk`** — hướng tiếp cận:
-> *Viết 2-3 câu: dùng biểu thức chính quy (regex) gì để phát hiện câu? Xử lý trường hợp ngoại lệ (edge case) nào?*
+> Dùng `re.split(r"(?<=[.!?])\s+", text.strip())` để tách sau dấu kết câu nhưng vẫn giữ dấu câu. Text rỗng trả `[]`; các câu được strip rồi gom theo `max_sentences_per_chunk`. Edge case còn hạn chế là chữ viết tắt và số thập phân có thể bị tách nhầm.
 
 **`RecursiveChunker.chunk` / `_split`** — hướng tiếp cận:
-> *Viết 2-3 câu: thuật toán hoạt động thế nào? Base case (trường hợp cơ sở) là gì?*
+> Thử separator theo thứ tự đoạn, dòng, câu, khoảng trắng và cuối cùng là ký tự; mảnh quá dài tiếp tục đệ quy với separator nhỏ hơn. Sau đó các mảnh nhỏ liền kề được gom đến gần `chunk_size`. Base case là text rỗng, text đã đủ ngắn, hoặc hết separator thì cắt an toàn theo kích thước cố định.
 
 ### Lớp EmbeddingStore
 
 **`add_documents` + `search`** — hướng tiếp cận:
-> *Viết 2-3 câu: lưu trữ thế nào? Tính độ tương tự ra sao?*
+> Mỗi `Document` là một record in-memory gồm id, content, metadata copy và embedding; store không tự chunk. Query được embed rồi xếp hạng theo dot product với embedding đã chuẩn hóa, tương đương cosine similarity.
 
 **`search_with_filter` + `delete_document`** — hướng tiếp cận:
-> *Viết 2-3 câu: lọc (filter) trước hay sau? Xóa bằng cách nào?*
+> Lọc metadata trước khi similarity search để không bị các kết quả sai audience chiếm top-k. `delete_document` loại toàn bộ records có `metadata['doc_id']` trùng doc_id gốc và trả Boolean theo việc có record bị xóa hay không.
 
 ### Tác tử KnowledgeBaseAgent
 
 **`answer`** — hướng tiếp cận:
-> *Viết 2-3 câu: cấu trúc prompt? Cách đưa ngữ cảnh (inject context) vào thế nào?*
+> Agent lấy top-k rồi dựng context đánh số `[1]`, `[2]` kèm source và nội dung chunk. Prompt yêu cầu chỉ dùng context, trích số chunk hỗ trợ, và nói rõ không tìm thấy nếu context thiếu; store rỗng không gọi LLM.
 
 ---
 
@@ -75,10 +75,10 @@ Vượt qua bộ kiểm thử là điều kiện tính điểm phần này.
 ### Kết Quả Kiểm Thử (Test Results)
 
 ```
-# Dán kết quả (output) của: pytest tests/ -v
+42 passed in 0.19s
 ```
 
-**Số lượng bài test vượt qua (pass):** __ / 42
+**Số lượng bài test vượt qua (pass):** 42 / 42
 
 ---
 
@@ -86,14 +86,14 @@ Vượt qua bộ kiểm thử là điều kiện tính điểm phần này.
 
 | Cặp | Câu A | Câu B | Dự đoán | Điểm thực tế | Đúng? |
 |------|-----------|-----------|---------|--------------|-------|
-| 1 | | | cao / thấp | | |
-| 2 | | | cao / thấp | | |
-| 3 | | | cao / thấp | | |
-| 4 | | | cao / thấp | | |
-| 5 | | | cao / thấp | | |
+| 1 | Sinh viên cần trả sách thư viện trước ngày đến hạn. | Người học phải hoàn trả tài liệu đúng hạn. | cao | 0.6110 | Có |
+| 2 | Giảng viên được mượn tối đa năm tài liệu. | Thư viện mở cửa từ thứ Hai đến thứ Sáu. | thấp | 0.2704 | Có |
+| 3 | Tôi muốn gia hạn sách đang mượn. | Có thể kéo dài thời hạn mượn tài liệu không? | cao | 0.5307 | Có |
+| 4 | Sách tham khảo bị trả muộn sẽ bị phạt. | Trường tổ chức lễ tốt nghiệp vào tháng Sáu. | thấp | 0.1181 | Có |
+| 5 | Sinh viên VinUni được mượn ba tài liệu trong hai tuần. | VinUni cho sinh viên mượn tối đa ba cuốn trong 14 ngày. | cao | 0.8447 | Có |
 
 **Kết quả nào bất ngờ nhất? Điều này nói gì về cách embeddings biểu diễn ý nghĩa?**
-> *Viết 2-3 câu:*
+> Cặp 5 cao nhất dù hai câu dùng “ba tài liệu”, “ba cuốn”, “hai tuần” và “14 ngày”, cho thấy embedding liên kết được cách diễn đạt tương đương. Cặp 3 cũng cùng ý nhưng điểm thấp hơn, nhắc rằng embedding đo mức gần nghĩa liên tục chứ không phải nhãn đúng/sai tuyệt đối.
 
 ---
 
@@ -103,16 +103,18 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 | # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan không? (Relevant) | Câu trả lời của Agent (tóm tắt) |
 |---|-------|--------------------------------|-------|-----------|------------------------|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
-| 4 | | | | | |
-| 5 | | | | | |
+| 1 | Hạn mức mượn VinUni | VinUni student, chunk 0 | 0.789 | Có, top-1 | Context chứa gold; 2/2 |
+| 2 | Hạn mức giảng viên VinUni | VinUni faculty, chunk 0 | 0.867 | Có, top-1 | Context chứa gold; 2/2 |
+| 3 | Gia hạn Asia University Vietnam | Asia, chunk 0 | 0.595 | Không | Chunk gold bị tách, không ở top-3 |
+| 4 | Phạt quá hạn Học viện Ngoại giao | Asia, PVU, DAV | 0.709 | Không | Chunk DAV ở top-3 nhưng không chứa mức phạt |
+| 5 | PVU xử lý trễ trên một tháng | PVU, chunk 0 | 0.728 | Không | Chunk có đáp án không ở top-3 |
 
-**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** __ / 5
+**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 2 / 5
+
+> Benchmark dùng `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384 chiều). Failure case còn lại cho thấy similarity theo nghĩa vẫn có thể ưu tiên chunk đúng chủ đề nhưng thiếu số liệu; vì vậy nhóm chấm bằng marker nội dung, không chỉ theo doc_id.
 
 **Điều hay nhất tôi học được từ thành viên khác / nhóm khác (qua demo):**
-> *Viết 2-3 câu:*
+> Metadata chỉ hữu ích khi cách tách dữ liệu khớp với chiều filter: chính sách sinh viên và giảng viên nên thành các tài liệu/chunk riêng. Tôi cũng học được rằng phải kiểm nội dung chunk chứa marker đáp án, không được chỉ nhìn doc_id ở top-k.
 
 ---
 
@@ -120,9 +122,9 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 | Tiêu chí | Điểm tự đánh giá |
 |----------|-------------------|
-| Khởi động (Warm-up) | / 5 |
-| Hướng tiếp cận của tôi (My Approach) | / 10 |
-| Hoàn thiện code (Core Implementation — tests) | / 30 |
-| Dự đoán độ tương tự (Similarity Predictions) | / 5 |
-| Kết quả truy xuất của tôi (Competition Results) | / 10 |
-| **Tổng phần cá nhân** | **/ 60** |
+| Khởi động (Warm-up) | 5 / 5 |
+| Hướng tiếp cận của tôi (My Approach) | 10 / 10 |
+| Hoàn thiện code (Core Implementation — tests) | 30 / 30 |
+| Dự đoán độ tương tự (Similarity Predictions) | 5 / 5 |
+| Kết quả truy xuất của tôi (Competition Results) | 4 / 10 |
+| **Tổng phần cá nhân** | **54 / 60** |

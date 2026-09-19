@@ -99,11 +99,11 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 
 | # | Câu hỏi (Query) | Câu trả lời chuẩn (Gold Answer) | Chunk nào chứa thông tin? |
 |---|-------|-------------------------------|--------------------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 | Tại VinUni, một người có thể mượn bao nhiêu tài liệu và trong bao lâu? *(chạy với `audience=student`)* | Sinh viên đại học: 03 tài liệu trong 02 tuần. | `vinuni-student-borrowing` |
+| 2 | Giảng viên VinUni được mượn tối đa bao nhiêu tài liệu và thời hạn mượn là bao lâu? | 05 tài liệu trong tối đa 06 tháng. | `vinuni-faculty-borrowing` |
+| 3 | Sinh viên Asia University Vietnam được gia hạn tài liệu bao lâu và mấy lần? | Gia hạn thêm 05 ngày, chỉ 01 lần. | `asia-library-regulations` |
+| 4 | Học viện Ngoại giao phạt bao nhiêu khi trả sách quá hạn? | 20.000 VNĐ cho mỗi cuốn mỗi ngày. | `dav-library-loan-process` |
+| 5 | Theo quy định PVU, giảng viên trả tài liệu quá hạn trên một tháng sẽ bị xử lý thế nào? | Bị đình chỉ sử dụng thư viện trong 01 năm học. | `pvu-faculty-loan-policy` |
 
 ### Tổng hợp chất lượng truy xuất của nhóm
 
@@ -125,13 +125,15 @@ Chạy `ChunkingStrategyComparator().compare()` trên 2-3 tài liệu:
 ## 4. Thuyết trình (Demo) & Bài học nhóm — Nhóm (5 điểm)
 
 **Những phân tích (insights) hay nhất nhóm sẽ trình bày:**
-> *Liệt kê 2-3 ý:*
+> - A/B query VinUni cho thấy filter `audience=student` đưa chunk chứa đáp án vào top-3; khi bỏ filter, top-3 bị lẫn tài liệu faculty/all.
+> - Không thể chỉ chấm theo `doc_id`: benchmark kiểm chuỗi đáp án trong nội dung chunk, vì một chunk cùng tài liệu chưa chắc chứa số liệu cần trả lời.
+> - Kết quả hiện tại dùng MockEmbedder nên cần chạy lại bằng embedding thật trước khi kết luận chiến lược thắng.
 
 **Bài học rút ra khi so sánh trong nhóm:**
 > *Viết 2-3 câu — cùng tài liệu nhưng chiến lược khác nhau dẫn tới khác biệt gì?*
 
 **Nếu làm lại, nhóm sẽ thay đổi gì trong chiến lược dữ liệu (data strategy)?**
-> *Viết 2-3 câu:*
+> Failure case: câu hỏi về mức phạt quá hạn của Học viện Ngoại giao không lấy được chunk chứa “20.000 VNĐ cho mỗi cuốn/ngày” ở top-3. Nguyên nhân trực tiếp là MockEmbedder không biểu diễn ngữ nghĩa; các chunk cùng chủ đề nhưng không có con số lại xếp cao hơn. Nhóm sẽ bật embedding đa ngôn ngữ thật, giữ marker đáp án để chấm context, và so sánh lại với cùng corpus/query.
 
 ---
 
