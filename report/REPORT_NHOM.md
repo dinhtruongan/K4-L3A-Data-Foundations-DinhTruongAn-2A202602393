@@ -127,10 +127,10 @@ class HeadingChunker:
 | Thành viên | Chiến lược (Strategy) | Điểm truy xuất (/10) | Điểm mạnh | Điểm yếu |
 |-----------|----------|----------------------|-----------|----------|
 | 1 (Duy) | Recursive (500) | 6/10 | Chunk cân đối, tôn trọng ranh giới câu/đoạn; ổn định trên mọi file | Câu ngắn ("overdue items can't be renewed") dễ bị xếp hạng thấp; số liệu nằm tách chunk |
-| 2 (Trường An) | HeadingChunker (600) | 5/10 | Giữ trọn từng section, gắn lại heading khi section dài phải cắt nhỏ | FAQ dài vẫn bị fallback tách mất cặp hỏi–đáp; top-1 có thể đúng doc nhưng sai section |
+| 2 (Trường An) | HeadingChunker (600) + bilingual expansion + RRF | 7/10 | Tách FAQ theo cặp hỏi–đáp; fusion Việt–Anh đưa marker câu 4 vào top-3 và Course Reserve lên top-1 | Không còn là so sánh thuần chunker; câu 1–2 vẫn chỉ có marker ở rank 2 |
 
 **Chiến lược nào tốt nhất cho chủ đề này? Tại sao?**
-> Trên corpus VinUni chung, SentenceChunker đạt 9/10, Recursive 6/10, FixedSize 6/10 và HeadingChunker 5/10. SentenceChunker thắng vì phần lớn câu trả lời là điều khoản ngắn có số liệu; HeadingChunker vẫn hữu ích với policy theo mục nhưng phải có fallback theo cặp hỏi–đáp hoặc overlap cho section dài.
+> Trên corpus VinUni chung, SentenceChunker đạt 9/10, Recursive 6/10, FixedSize 6/10; pipeline HeadingChunker + bilingual expansion + RRF của Trường An đạt 7/10. SentenceChunker vẫn là lựa chọn tốt nhất nếu chỉ đổi chunker; RRF là cải tiến retrieval bổ sung nên không dùng kết quả 7/10 để tuyên bố HeadingChunker đơn lẻ thắng Recursive.
 
 ---
 
@@ -154,14 +154,14 @@ class HeadingChunker:
 
 | # | Câu hỏi | Chiến lược tốt nhất cho câu này | Có chunk liên quan trong top-3? | Ghi chú |
 |---|---------|-------------------------------|-------------------------------|---------|
-| 1 | Quyền mượn | Recursive / Sentence | ✅ (cả 3, sau khi filter student) | Filter student làm top-3 chỉ còn tài liệu student; không filter bị lẫn faculty/staff |
-| 2 | Phạt quá hạn | **Sentence** (2đ) | ✅ Sentence: chunk chứa con số ở top-2; Recursive/Fixed chỉ lấy chunk mô tả chung (1đ) | Con số 20,000 VND bị cắt sang chunk khác ở 2 chiến lược kia |
-| 3 | Gia hạn quá hạn | Sentence (1đ) | ⚠️ một phần | **Failure case:** câu "overdue items can't be renewed" không lọt top-3 của cả 3 chiến lược |
-| 4 | Trả sách khi đóng cửa | **FixedSize / Sentence** (2đ) | ✅ Fixed & Sentence: chunk FAQ câu 5 trong top-3; Recursive thiếu (1đ) | Recursive top-1 bắt nhầm "holiday extension" (gần nghĩa nhưng sai câu hỏi) |
-| 5 | Course Reserve | Cả 3 (2đ) | ✅ cả 3 | Điểm cao nhất toàn bộ benchmark (0.70–0.77) |
+| 1 | Quyền mượn | Sentence / Heading+RRF | ✅ marker rank 2 | Filter student loại FAQ khỏi top-3, nhưng chưa phân biệt undergraduate với graduate |
+| 2 | Phạt quá hạn | Sentence | ✅ Heading+RRF: marker rank 2 | Chunk biểu phí vẫn cạnh tranh với chunk cùng chủ đề damage/fines |
+| 3 | Gia hạn quá hạn | Heading+RRF | ✅ marker rank 1 | RRF giữ chunk circulation-privileges chứa điều kiện gia hạn |
+| 4 | Trả sách khi đóng cửa | Heading+RRF | ✅ marker rank 3 | FAQ tách hỏi–đáp + expansion Anh đưa 24/7-return-station vào top-3 |
+| 5 | Course Reserve | Heading+RRF | ✅ marker rank 1 | Tách subsection Students giữ thời hạn 2 giờ và Circulation Desk cùng một chunk |
 
 **Lọc bằng metadata có giúp ích không? Ở câu hỏi nào?**
-> Có — ở **câu 1**. Chạy A/B (có/không `metadata_filter={"audience": "student"}`): không lọc, top-3 lẫn tài liệu faculty/staff (thời hạn 6 tháng/2 tuần) nên agent có thể trả lời sai đối tượng; lọc xong top-3 chỉ còn tài liệu student và agent trả lời đúng phạm vi sinh viên. Đánh đổi: lọc quá hẹp (ví dụ chỉ `category=borrowing`) có thể loại bỏ chunk FAQ vốn cũng chứa câu trả lời — cần cân bằng precision/recall.
+> Có — ở **câu 1**. Với filter audience=student, top-3 chỉ gồm graduate/undergraduate/course reserve; khi bỏ filter, hai chunk FAQ chen vào top-3. Filter tăng precision theo đối tượng, nhưng không tự phân biệt undergraduate và graduate vì cả hai cùng metadata student; đây là đánh đổi cần nêu rõ.
 
 > **So sánh chéo hợp lệ:** cả hai chiến lược chạy trên cùng 10 file và 5 query. A/B ở câu 1 dùng `audience=student`: không lọc có thể lẫn tài liệu faculty/staff, còn lọc giới hạn ngữ cảnh về sinh viên. Cả hai vẫn phải chấm marker trong nội dung chunk, không chỉ đối chiếu `doc_id`.
 
@@ -170,12 +170,12 @@ class HeadingChunker:
 ## 4. Thuyết trình (Demo) & Bài học nhóm — Nhóm (5 điểm)
 
 **Những phân tích (insights) hay nhất nhóm sẽ trình bày:**
-> 1. Chiến lược chunk tôn trọng cấu trúc ngôn ngữ của dữ liệu thường thắng chunk cơ khí: trên corpus VinUni, SentenceChunker đạt 9/10 (Recursive/FixedSize 6/10). HeadingChunker được đánh giá lại trên đúng corpus này; con số phải nằm **trong** chunk mới lọt top-k.
+> 1. Chunk tôn trọng cấu trúc dữ liệu có lợi: HeadingChunker tách FAQ theo cặp hỏi–đáp, giúp đưa đáp án câu 4 vào top-3 và Course Reserve lên top-1. SentenceChunker vẫn đạt 9/10 trong phép so sánh thuần chunker.
 > 2. Metadata filter thật sự đổi kết quả: A/B của cả 2 thành viên cho cùng kết luận — không lọc, top-1 là tài liệu sai đối tượng (faculty 6 tháng); lọc `audience=student` chuyển top-1 về đúng nhóm. Filter chỉ hiệu quả khi dữ liệu đã tách theo audience từ khâu crawl.
 > 3. Mock embedder phá hỏng mọi số liệu (điểm gần 0/âm, retrieval lẫn lộn) — benchmark phải dùng embedder thật (local đa ngữ MiniLM, 384 chiều); 42 test chỉ cần mock vì chỉ kiểm cấu trúc.
 
 **Bài học rút ra khi so sánh trong nhóm:**
-> So sánh chỉ có ý nghĩa khi giữ cố định corpus, query, embedding backend và `top_k`; khi đó chênh lệch mới đến từ chunking. Metadata filter cải thiện precision cho câu 1, nhưng filter quá hẹp có thể làm mất FAQ hoặc tài liệu chứa thông tin bổ sung.
+> So sánh thuần chunking phải giữ cố định corpus, query, embedding backend và top_k. Bilingual expansion + RRF là một thực nghiệm retrieval riêng: nó cải thiện 5/10 lên 7/10, nhưng không được dùng để quy toàn bộ cải thiện cho HeadingChunker. Metadata filter tăng precision cho câu 1 nhưng không thay thế metadata chi tiết hơn như user_group=undergraduate/graduate.
 
 **Nếu làm lại, nhóm sẽ thay đổi gì trong chiến lược dữ liệu (data strategy)?**
 > (1) Kết hợp HeadingChunker và giữ trọn câu trong section cho các chính sách dài; (2) lưu version rõ hơn cho từng biểu phí; (3) bổ sung thêm marker đáp án để phát hiện trường hợp cùng tài liệu nhưng sai section.

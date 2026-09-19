@@ -59,6 +59,11 @@ class HeadingChunker:
         groups: list[list[str]] = []
         current: list[str] = []
         for line in body:
+            is_labeled_subsection = re.match(r"^[A-Z][A-Za-z ]{1,40}:$", line.strip())
+            if is_labeled_subsection and current:
+                groups.append(current)
+                current = [line]
+                continue
             if re.match(r"^\d+\.\s+.+\?\s*$", line.strip()) and current:
                 groups.append(current)
                 current = [line]
@@ -79,32 +84,37 @@ CHUNKER = HeadingChunker(chunk_size=600)
 BENCHMARKS = [
     {
         "query": "Tôi được mượn tối đa bao nhiêu tài liệu và giữ trong bao lâu?",
+        "english_query": "How many library items may I borrow and for how long?",
         "gold_answer": "Undergraduate: 3 tài liệu/2 tuần; graduate: 5 tài liệu/1 tháng.",
         "answer_marker": "Undergraduate student 3 2 weeks",
         "metadata_filter": {"audience": "student"},
     },
     {
         "query": "Phạt quá hạn tài liệu thường là bao nhiêu?",
+        "english_query": "What is the overdue fine for library materials?",
         "gold_answer": "20,000 VND/ngày; course-specific và thiết bị: 20,000 VND/giờ.",
         "answer_marker": "Normal material: 20,000 VND/ day overdue/ document.",
         "metadata_filter": None,
     },
     {
         "query": "Tôi có thể gia hạn tài liệu đang quá hạn không? Điều kiện gia hạn là gì?",
+        "english_query": "Can overdue library materials be renewed and what are the renewal conditions?",
         "gold_answer": "Gia hạn bằng nửa thời hạn gốc, chỉ khi không có người đặt trước; tài liệu quá hạn phải xử lý trực tiếp tại quầy.",
         "answer_marker": "Renewals of library materials are only allowed if there has been no request for that material by others.",
         "metadata_filter": None,
     },
     {
         "query": "Làm sao để trả sách khi thư viện đóng cửa?",
+        "english_query": "How can I return library books when the library is closed?",
         "gold_answer": "Dùng máy trả sách 24/7 ở cổng chính.",
         "answer_marker": "24/7-return-station",
         "metadata_filter": None,
     },
     {
         "query": "Sách Course Reserve được mượn bao lâu và phải trả ở đâu?",
+        "english_query": "How long may Course Reserve books be used, and where are they returned?",
         "gold_answer": "Tối đa 2 giờ; mượn/trả tại Circulation Desk tầng 1.",
-        "answer_marker": "checked out for 02 hours only",
+        "answer_marker": "Course reserves can be used in the library only for a maximum of two hours.",
         "metadata_filter": None,
     },
 ]
@@ -149,9 +159,23 @@ def get_embedder():
     return _mock_embed
 
 
-def retrieve(store: EmbeddingStore, query: str, metadata_filter: dict | None) -> list[dict]:
-    """Use the same semantic retrieval route for every chunking strategy."""
-    return store.search_with_filter(query, top_k=3, metadata_filter=metadata_filter)
+def retrieve(store: EmbeddingStore, benchmark: dict) -> list[dict]:
+    """Fuse Vietnamese and English rankings with Reciprocal Rank Fusion."""
+    metadata_filter = benchmark["metadata_filter"]
+    candidate_count = store.get_collection_size()
+    merged: dict[str, dict] = {}
+    for query in (benchmark["query"], benchmark["english_query"]):
+        for rank, result in enumerate(
+            store.search_with_filter(query, top_k=candidate_count, metadata_filter=metadata_filter),
+            start=1,
+        ):
+            existing = merged.get(result["id"])
+            rrf_score = 1 / (60 + rank)
+            if existing is None:
+                merged[result["id"]] = {**result, "score": rrf_score}
+            else:
+                existing["score"] += rrf_score
+    return sorted(merged.values(), key=lambda result: result["score"], reverse=True)[:3]
 
 
 def contains_answer_marker(content: str, marker: str) -> bool:
@@ -172,10 +196,11 @@ def main() -> None:
 
     for number, benchmark in enumerate(BENCHMARKS, start=1):
         metadata_filter = benchmark["metadata_filter"]
-        results = retrieve(store, benchmark["query"], metadata_filter)
+        results = retrieve(store, benchmark)
         print(f"\n[{number}] {benchmark['query']}")
         print(f"Gold: {benchmark['gold_answer']}")
         print(f"Filter: {metadata_filter or 'none'}")
+        print(f"English expansion: {benchmark['english_query']}")
         marker_rank = next(
             (rank for rank, result in enumerate(results, start=1) if contains_answer_marker(result["content"], benchmark["answer_marker"])),
             None,
@@ -200,7 +225,7 @@ def run_filter_ab() -> None:
 
     print("\n=== A/B metadata filter: query 1 ===")
     for label, metadata_filter in (("with audience=student", {"audience": "student"}), ("without filter", None)):
-        results = retrieve(store, benchmark["query"], metadata_filter)
+        results = retrieve(store, {**benchmark, "metadata_filter": metadata_filter})
         print(f"{label}:")
         for rank, result in enumerate(results, start=1):
             contains_marker = contains_answer_marker(result["content"], benchmark["answer_marker"])

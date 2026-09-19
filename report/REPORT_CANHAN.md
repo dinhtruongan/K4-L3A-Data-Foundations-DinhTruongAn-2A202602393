@@ -103,15 +103,15 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 | # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan không? (Relevant) | Câu trả lời của Agent (tóm tắt) |
 |---|-------|--------------------------------|-------|-----------|------------------------|
-| 1 | Tôi được mượn tối đa bao nhiêu tài liệu và giữ trong bao lâu? | undergraduate-borrowing, chunk 1 | 0.565 | Có, top-1 | Bảng quyền mượn chứa 3 tài liệu/2 tuần; 2/2 |
-| 2 | Phạt quá hạn tài liệu thường là bao nhiêu? | library-faq, chunk 3 | 0.563 | Có, top-1 | Context chứa mức 20,000 VND/ngày; 2/2 |
-| 3 | Tôi có thể gia hạn tài liệu đang quá hạn không? Điều kiện gia hạn là gì? | circulation-privileges, chunk 2 | 0.530 | Có, top-2 | Điều kiện không có người đặt trước; 1/2 |
-| 4 | Làm sao để trả sách khi thư viện đóng cửa? | fines-and-damage, chunk 2 | 0.580 | Không | Không lấy được chunk chứa máy trả sách 24/7; 0/2 |
-| 5 | Sách Course Reserve được mượn bao lâu và phải trả ở đâu? | course-reserve, chunk 0 | 0.780 | Không đủ | Đúng tài liệu nhưng chunk chỉ là giới thiệu, thiếu 2 giờ/quầy; 0/2 |
+| 1 | Tôi được mượn tối đa bao nhiêu tài liệu và giữ trong bao lâu? | graduate-borrowing, chunk 2; marker undergraduate ở rank 2 | 0.033 (RRF) | Có, top-2 | Context top-3 có hạn mức graduate và undergraduate; 1/2 |
+| 2 | Phạt quá hạn tài liệu thường là bao nhiêu? | library-faq, chunk 5 | 0.031 (RRF) | Có, top-2 | Chunk FAQ chứa mức 20,000 VND/ngày; 1/2 |
+| 3 | Tôi có thể gia hạn tài liệu đang quá hạn không? Điều kiện gia hạn là gì? | circulation-privileges, chunk 2 | 0.032 (RRF) | Có, top-1 | Điều kiện không có người đặt trước; 2/2 |
+| 4 | Làm sao để trả sách khi thư viện đóng cửa? | library-faq, chunk 11 | 0.032 (RRF) | Có, top-3 | Có 24/7-return-station; 1/2 |
+| 5 | Sách Course Reserve được mượn bao lâu và phải trả ở đâu? | course-reserve, chunk 1 | 0.033 (RRF) | Có, top-1 | Context chứa Circulation Desk và tối đa 2 giờ; 2/2 |
 
-**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 3 / 5
+**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 5 / 5
 
-> Benchmark dùng `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384 chiều). HeadingChunker đạt 5/10 trên corpus VinUni chung: câu 5 cho thấy không thể chỉ chấm theo `doc_id`, vì top-1 là `course-reserve` nhưng chunk không chứa thời hạn và nơi trả. Câu 4 là failure case retrieval thật; đề xuất là tách FAQ theo cặp hỏi–đáp hoặc thêm overlap khi fallback cắt section dài.
+> Benchmark dùng sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (384 chiều). Bản cuối dùng HeadingChunker tách FAQ theo cặp hỏi–đáp, bilingual query expansion Việt–Anh và Reciprocal Rank Fusion (RRF), đạt **7/10**. RRF score (~0.03) là điểm hợp nhất thứ hạng, không phải cosine. Failure còn lại là câu 1–2 chỉ có marker ở rank 2 do quyền mượn/biểu phí bị cạnh tranh bởi các chunk cùng chủ đề.
 
 **Điều hay nhất tôi học được từ thành viên khác / nhóm khác (qua demo):**
 > Metadata chỉ hữu ích khi cách tách dữ liệu khớp với chiều filter: chính sách sinh viên và giảng viên nên thành các tài liệu/chunk riêng. Tôi cũng học được rằng phải kiểm nội dung chunk chứa marker đáp án, không được chỉ nhìn doc_id ở top-k.
@@ -126,5 +126,5 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 | Hướng tiếp cận của tôi (My Approach) | 10 / 10 |
 | Hoàn thiện code (Core Implementation — tests) | 30 / 30 |
 | Dự đoán độ tương tự (Similarity Predictions) | 5 / 5 |
-| Kết quả truy xuất của tôi (Competition Results) | 5 / 10 |
-| **Tổng phần cá nhân** | **55 / 60** |
+| Kết quả truy xuất của tôi (Competition Results) | 7 / 10 |
+| **Tổng phần cá nhân** | **57 / 60** |
