@@ -11,7 +11,7 @@ from src.embeddings import EMBEDDING_PROVIDER_ENV, LocalEmbedder, _mock_embed
 from src.models import Document
 from src.store import EmbeddingStore
 
-DATA_DIR = Path("data/library_services")
+DATA_DIR = Path("data/library-borrowing")
 
 
 class HeadingChunker:
@@ -47,38 +47,38 @@ class HeadingChunker:
 
 
 # Personal strategy: switch this line for a controlled comparison.
-CHUNKER = HeadingChunker(chunk_size=400)
+CHUNKER = HeadingChunker(chunk_size=600)
 
 BENCHMARKS = [
     {
-        "query": "Tại VinUni, một người có thể mượn bao nhiêu tài liệu và trong bao lâu?",
-        "gold_answer": "Sinh viên đại học: 03 tài liệu trong 02 tuần.",
-        "answer_marker": "Sinh viên đại học được mượn 03 tài liệu trong 02 tuần",
+        "query": "Tôi được mượn tối đa bao nhiêu tài liệu và giữ trong bao lâu?",
+        "gold_answer": "Undergraduate: 3 tài liệu/2 tuần; graduate: 5 tài liệu/1 tháng.",
+        "answer_marker": "Undergraduate students may borrow up to 3 items during two weeks",
         "metadata_filter": {"audience": "student"},
     },
     {
-        "query": "Giảng viên VinUni được mượn tối đa bao nhiêu tài liệu và thời hạn mượn là bao lâu?",
-        "gold_answer": "05 tài liệu trong tối đa 06 tháng.",
-        "answer_marker": "05 tài liệu trong tối đa 06 tháng",
-        "metadata_filter": {"audience": "faculty"},
+        "query": "Phạt quá hạn tài liệu thường là bao nhiêu?",
+        "gold_answer": "20,000 VND/ngày; course-specific và thiết bị: 20,000 VND/giờ.",
+        "answer_marker": "20,000 VND per day",
+        "metadata_filter": None,
     },
     {
-        "query": "Sinh viên Asia University Vietnam được gia hạn tài liệu bao lâu và mấy lần?",
-        "gold_answer": "Gia hạn thêm 05 ngày, chỉ 01 lần.",
-        "answer_marker": "gia hạn thêm 05 ngày, chỉ 01 lần",
-        "metadata_filter": {"audience": "student"},
+        "query": "Tôi có thể gia hạn tài liệu đang quá hạn không? Điều kiện gia hạn là gì?",
+        "gold_answer": "Không gia hạn tài liệu quá hạn; chỉ khi không có người đặt trước.",
+        "answer_marker": "Overdue items can't be renewed",
+        "metadata_filter": None,
     },
     {
-        "query": "Học viện Ngoại giao phạt bao nhiêu khi trả sách quá hạn?",
-        "gold_answer": "20.000 VNĐ cho mỗi cuốn mỗi ngày.",
-        "answer_marker": "20.000 VNĐ cho mỗi cuốn/ngày",
-        "metadata_filter": {"institution": "dav"},
+        "query": "Làm sao để trả sách khi thư viện đóng cửa?",
+        "gold_answer": "Dùng máy trả sách 24/7 ở cổng chính.",
+        "answer_marker": "24/7-return-station",
+        "metadata_filter": None,
     },
     {
-        "query": "Theo quy định PVU, giảng viên trả tài liệu quá hạn trên một tháng sẽ bị xử lý thế nào?",
-        "gold_answer": "Bị đình chỉ sử dụng thư viện trong 01 năm học.",
-        "answer_marker": "đình chỉ sử dụng thư viện trong 01 năm học",
-        "metadata_filter": {"audience": "faculty", "institution": "pvu"},
+        "query": "Sách Course Reserve được mượn bao lâu và phải trả ở đâu?",
+        "gold_answer": "Tối đa 2 giờ; mượn/trả tại Circulation Desk tầng 1.",
+        "answer_marker": "checked out for 02 hours only",
+        "metadata_filter": None,
     },
 ]
 
@@ -122,6 +122,11 @@ def get_embedder():
     return _mock_embed
 
 
+def retrieve(store: EmbeddingStore, query: str, metadata_filter: dict | None) -> list[dict]:
+    """Use the same semantic retrieval route for every chunking strategy."""
+    return store.search_with_filter(query, top_k=3, metadata_filter=metadata_filter)
+
+
 def main() -> None:
     documents = load_chunked_documents()
     embedder = get_embedder()
@@ -134,9 +139,7 @@ def main() -> None:
 
     for number, benchmark in enumerate(BENCHMARKS, start=1):
         metadata_filter = benchmark["metadata_filter"]
-        results = store.search_with_filter(
-            benchmark["query"], top_k=3, metadata_filter=metadata_filter
-        )
+        results = retrieve(store, benchmark["query"], metadata_filter)
         print(f"\n[{number}] {benchmark['query']}")
         print(f"Gold: {benchmark['gold_answer']}")
         print(f"Filter: {metadata_filter or 'none'}")
@@ -164,7 +167,7 @@ def run_filter_ab() -> None:
 
     print("\n=== A/B metadata filter: query 1 ===")
     for label, metadata_filter in (("with audience=student", {"audience": "student"}), ("without filter", None)):
-        results = store.search_with_filter(benchmark["query"], top_k=3, metadata_filter=metadata_filter)
+        results = retrieve(store, benchmark["query"], metadata_filter)
         print(f"{label}:")
         for rank, result in enumerate(results, start=1):
             contains_marker = benchmark["answer_marker"] in result["content"]

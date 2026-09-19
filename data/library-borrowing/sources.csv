@@ -1,0 +1,11 @@
+doc_id,file_path,title,source_url,retrieved_at,document_version,license_or_permission
+circulation-privileges,data/library-borrowing/circulation-privileges.md,Circulation privileges and circulation regulations,https://library.vinuni.edu.vn/borrowing-priviledge/,2026-09-19,not-stated,public-source
+course-reserve,data/library-borrowing/course-reserve.md,Course Reserve borrowing rules,https://library.vinuni.edu.vn/course-reserve/,2026-09-19,not-stated,public-source
+fines-and-damage,data/library-borrowing/fines-and-damage.md,"Library fines for overdue, damage and loss",https://library.vinuni.edu.vn/fine-and-other-charges/,2026-09-19,not-stated,public-source
+graduate-borrowing,data/library-borrowing/graduate-borrowing.md,Library borrowing rules for graduate students,https://library.vinuni.edu.vn/services/borrow-and-request/graduate-faculty-and-instructors/,2026-09-19,not-stated,public-source
+faculty-borrowing,data/library-borrowing/faculty-borrowing.md,Library borrowing rules for faculty,https://policy.vinuni.edu.vn/all-policies/library-policies-for-users/,2026-09-19,POL-LLR-001-V4.0,public-source
+staff-borrowing,data/library-borrowing/staff-borrowing.md,Library borrowing rules for staff,https://policy.vinuni.edu.vn/all-policies/library-policies-for-users/,2026-09-19,POL-LLR-001-V4.0,public-source
+requests-holds-recalls,data/library-borrowing/requests-holds-recalls.md,"Requesting books, holds and recalls",https://policy.vinuni.edu.vn/all-policies/library-policies-for-users/,2026-09-19,POL-LLR-001-V4.0,public-source
+equipment-borrowing,data/library-borrowing/equipment-borrowing.md,Library equipment borrowing rules,https://policy.vinuni.edu.vn/all-policies/library-policies-for-users/,2026-09-19,POL-LLR-001-V4.0,public-source
+library-faq,data/library-borrowing/library-faq.md,"Library FAQ about borrowing, returning and renewing",https://library.vinuni.edu.vn/faq/,2026-09-19,not-stated,public-source
+undergraduate-borrowing,data/library-borrowing/undergraduate-borrowing.md,Library borrowing rules for undergraduate students,https://library.vinuni.edu.vn/services/borrow-and-request/undergraduate-and-staff/,2026-09-19,not-stated,public-source

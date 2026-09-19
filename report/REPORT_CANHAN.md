@@ -103,15 +103,15 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 | # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan không? (Relevant) | Câu trả lời của Agent (tóm tắt) |
 |---|-------|--------------------------------|-------|-----------|------------------------|
-| 1 | Hạn mức mượn VinUni | VinUni student, chunk 0 | 0.789 | Có, top-1 | Context chứa gold; 2/2 |
-| 2 | Hạn mức giảng viên VinUni | VinUni faculty, chunk 0 | 0.867 | Có, top-1 | Context chứa gold; 2/2 |
-| 3 | Gia hạn Asia University Vietnam | Asia, chunk 0; gold ở chunk 1 | 0.585 | Có, top-3 | Heading giữ mục “Hạn mức và gia hạn”; 1/2 |
-| 4 | Phạt quá hạn Học viện Ngoại giao | DAV chunks 2, 1, 0 | 0.567 | Không | Filter trường đúng nhưng chunk mức phạt không vào top-3 |
-| 5 | PVU xử lý trễ trên một tháng | PVU chunks 0, 1, 2 | 0.759 | Có, top-3 | Chunk “Xử lý vi phạm” chứa gold ở rank 3; 1/2 |
+| 1 | Tôi được mượn tối đa bao nhiêu tài liệu và giữ trong bao lâu? | Chờ chạy HeadingChunker trên corpus VinUni chung | — | — | Filter `audience=student`; marker undergraduate |
+| 2 | Phạt quá hạn tài liệu thường là bao nhiêu? | Chờ chạy HeadingChunker trên corpus VinUni chung | — | — | Marker `20,000 VND per day` |
+| 3 | Tôi có thể gia hạn tài liệu đang quá hạn không? Điều kiện gia hạn là gì? | Chờ chạy HeadingChunker trên corpus VinUni chung | — | — | Marker `Overdue items can't be renewed` |
+| 4 | Làm sao để trả sách khi thư viện đóng cửa? | Chờ chạy HeadingChunker trên corpus VinUni chung | — | — | Marker `24/7-return-station` |
+| 5 | Sách Course Reserve được mượn bao lâu và phải trả ở đâu? | Chờ chạy HeadingChunker trên corpus VinUni chung | — | — | Marker `checked out for 02 hours only` |
 
-**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** 4 / 5
+**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** Chờ kết quả chạy lại.
 
-> Benchmark dùng `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384 chiều). Failure case còn lại cho thấy similarity theo nghĩa vẫn có thể ưu tiên chunk đúng chủ đề nhưng thiếu số liệu; vì vậy nhóm chấm bằng marker nội dung, không chỉ theo doc_id.
+> Bản benchmark cũ (corpus đa trường) đã được thay bằng corpus VinUni chung để so sánh hợp lệ với RecursiveChunker của Phan Đức Duy. Sau khi chạy lại bằng `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384 chiều), bảng này sẽ ghi score và rank marker thực tế; nhóm vẫn chấm marker nội dung thay vì chỉ kiểm `doc_id`.
 
 **Điều hay nhất tôi học được từ thành viên khác / nhóm khác (qua demo):**
 > Metadata chỉ hữu ích khi cách tách dữ liệu khớp với chiều filter: chính sách sinh viên và giảng viên nên thành các tài liệu/chunk riêng. Tôi cũng học được rằng phải kiểm nội dung chunk chứa marker đáp án, không được chỉ nhìn doc_id ở top-k.
@@ -126,5 +126,5 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 | Hướng tiếp cận của tôi (My Approach) | 10 / 10 |
 | Hoàn thiện code (Core Implementation — tests) | 30 / 30 |
 | Dự đoán độ tương tự (Similarity Predictions) | 5 / 5 |
-| Kết quả truy xuất của tôi (Competition Results) | 6 / 10 |
-| **Tổng phần cá nhân** | **56 / 60** |
+| Kết quả truy xuất của tôi (Competition Results) | Chờ benchmark chung / 10 |
+| **Tổng phần cá nhân** | **Chờ benchmark chung / 60** |
