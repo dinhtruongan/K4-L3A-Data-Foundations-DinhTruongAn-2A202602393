@@ -127,10 +127,10 @@ class HeadingChunker:
 | Thành viên | Chiến lược (Strategy) | Điểm truy xuất (/10) | Điểm mạnh | Điểm yếu |
 |-----------|----------|----------------------|-----------|----------|
 | 1 (Duy) | Recursive (500) | 6/10 | Chunk cân đối, tôn trọng ranh giới câu/đoạn; ổn định trên mọi file | Câu ngắn ("overdue items can't be renewed") dễ bị xếp hạng thấp; số liệu nằm tách chunk |
-| 2 (Trường An) | HeadingChunker (600) | Chờ chạy lại trên corpus chung | Giữ trọn từng section, gắn lại heading khi section dài phải cắt nhỏ | Cần đo lại cùng corpus/query trước khi kết luận |
+| 2 (Trường An) | HeadingChunker (600) | 5/10 | Giữ trọn từng section, gắn lại heading khi section dài phải cắt nhỏ | FAQ dài vẫn bị fallback tách mất cặp hỏi–đáp; top-1 có thể đúng doc nhưng sai section |
 
 **Chiến lược nào tốt nhất cho chủ đề này? Tại sao?**
-> Kết quả hiện có cho thấy SentenceChunker đạt 9/10, Recursive 6/10 và FixedSize 6/10 trên corpus VinUni. HeadingChunker của Trường An đang được chạy lại trên **cùng corpus/query**; chỉ sau lần chạy đó nhóm mới chốt chiến lược thắng. Giả thuyết cần kiểm chứng là heading giữ trọn quy định theo mục, còn sentence giữ trọn điều khoản ngắn chứa số liệu.
+> Trên corpus VinUni chung, SentenceChunker đạt 9/10, Recursive 6/10, FixedSize 6/10 và HeadingChunker 5/10. SentenceChunker thắng vì phần lớn câu trả lời là điều khoản ngắn có số liệu; HeadingChunker vẫn hữu ích với policy theo mục nhưng phải có fallback theo cặp hỏi–đáp hoặc overlap cho section dài.
 
 ---
 

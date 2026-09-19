@@ -53,19 +53,19 @@ BENCHMARKS = [
     {
         "query": "Tôi được mượn tối đa bao nhiêu tài liệu và giữ trong bao lâu?",
         "gold_answer": "Undergraduate: 3 tài liệu/2 tuần; graduate: 5 tài liệu/1 tháng.",
-        "answer_marker": "Undergraduate students may borrow up to 3 items during two weeks",
+        "answer_marker": "Undergraduate student 3 2 weeks",
         "metadata_filter": {"audience": "student"},
     },
     {
         "query": "Phạt quá hạn tài liệu thường là bao nhiêu?",
         "gold_answer": "20,000 VND/ngày; course-specific và thiết bị: 20,000 VND/giờ.",
-        "answer_marker": "20,000 VND per day",
+        "answer_marker": "Normal material: 20,000 VND/ day overdue/ document.",
         "metadata_filter": None,
     },
     {
         "query": "Tôi có thể gia hạn tài liệu đang quá hạn không? Điều kiện gia hạn là gì?",
-        "gold_answer": "Không gia hạn tài liệu quá hạn; chỉ khi không có người đặt trước.",
-        "answer_marker": "Overdue items can't be renewed",
+        "gold_answer": "Gia hạn bằng nửa thời hạn gốc, chỉ khi không có người đặt trước; tài liệu quá hạn phải xử lý trực tiếp tại quầy.",
+        "answer_marker": "Renewals of library materials are only allowed if there has been no request for that material by others.",
         "metadata_filter": None,
     },
     {
@@ -127,6 +127,12 @@ def retrieve(store: EmbeddingStore, query: str, metadata_filter: dict | None) ->
     return store.search_with_filter(query, top_k=3, metadata_filter=metadata_filter)
 
 
+def contains_answer_marker(content: str, marker: str) -> bool:
+    """Compare content robustly when Markdown tables have variable whitespace."""
+    normalize = lambda text: " ".join(text.lower().split())
+    return normalize(marker) in normalize(content)
+
+
 def main() -> None:
     documents = load_chunked_documents()
     embedder = get_embedder()
@@ -144,7 +150,7 @@ def main() -> None:
         print(f"Gold: {benchmark['gold_answer']}")
         print(f"Filter: {metadata_filter or 'none'}")
         marker_rank = next(
-            (rank for rank, result in enumerate(results, start=1) if benchmark["answer_marker"] in result["content"]),
+            (rank for rank, result in enumerate(results, start=1) if contains_answer_marker(result["content"], benchmark["answer_marker"])),
             None,
         )
         retrieval_points = 2 if marker_rank == 1 else 1 if marker_rank else 0
@@ -170,7 +176,7 @@ def run_filter_ab() -> None:
         results = retrieve(store, benchmark["query"], metadata_filter)
         print(f"{label}:")
         for rank, result in enumerate(results, start=1):
-            contains_marker = benchmark["answer_marker"] in result["content"]
+            contains_marker = contains_answer_marker(result["content"], benchmark["answer_marker"])
             print(f"  {rank}. {result['metadata']['doc_id']} score={result['score']:.3f} marker={contains_marker}")
 
 
