@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -15,14 +16,15 @@ DATA_DIR = Path("data/library-borrowing")
 
 
 class HeadingChunker:
-    """Keep each Markdown heading section intact; split only long sections."""
+    """Chunk by Markdown headings and numbered FAQ question/answer sections."""
 
-    def __init__(self, chunk_size: int = 600) -> None:
+    def __init__(self, chunk_size: int = 600, grace: int = 150) -> None:
         self.chunk_size = chunk_size
+        self.grace = grace
         self.fallback = RecursiveChunker(chunk_size=chunk_size)
 
     def chunk(self, text: str) -> list[str]:
-        sections = []
+        sections: list[tuple[str, str]] = []
         current_heading = ""
         current_lines: list[str] = []
         for line in text.splitlines():
@@ -38,12 +40,37 @@ class HeadingChunker:
 
         chunks: list[str] = []
         for heading, section in sections:
-            if len(section) <= self.chunk_size:
-                chunks.append(section)
-            else:
-                for piece in self.fallback.chunk(section):
+            for subsection in self._split_faq_sections(heading, section):
+                if len(subsection) <= self.chunk_size + self.grace:
+                    chunks.append(subsection)
+                    continue
+                for piece in self.fallback.chunk(subsection):
                     chunks.append(piece if piece.startswith("#") else f"{heading}\n{piece}")
         return [chunk for chunk in chunks if chunk]
+
+    @staticmethod
+    def _split_faq_sections(heading: str, section: str) -> list[str]:
+        """Keep each numbered FAQ question together with its following answer."""
+        lines = section.splitlines()
+        if len(lines) < 2:
+            return [section]
+
+        title, body = lines[0], lines[1:]
+        groups: list[list[str]] = []
+        current: list[str] = []
+        for line in body:
+            if re.match(r"^\d+\.\s+.+\?\s*$", line.strip()) and current:
+                groups.append(current)
+                current = [line]
+            else:
+                current.append(line)
+        if current:
+            groups.append(current)
+
+        # Ordinary policy text has no FAQ questions and remains one heading section.
+        if len(groups) <= 1:
+            return [section]
+        return [f"{title}\n" + "\n".join(group).strip() for group in groups]
 
 
 # Personal strategy: switch this line for a controlled comparison.
