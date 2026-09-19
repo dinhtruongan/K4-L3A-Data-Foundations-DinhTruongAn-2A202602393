@@ -6,6 +6,7 @@ retrieved_at: "2026-09-19"
 document_version: "not-stated"
 audience: "faculty"
 department: "library"
+institution: "pvu"
 category: "borrowing"
 language: "vi"
 ---

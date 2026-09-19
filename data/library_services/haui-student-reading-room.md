@@ -6,6 +6,7 @@ retrieved_at: "2026-09-19"
 document_version: "2026-03-19"
 audience: "student"
 department: "library"
+institution: "haui"
 category: "reading-room"
 language: "vi"
 ---

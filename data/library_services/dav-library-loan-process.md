@@ -6,6 +6,7 @@ retrieved_at: "2026-09-19"
 document_version: "not-stated"
 audience: "all"
 department: "library"
+institution: "dav"
 category: "borrowing-process"
 language: "vi"
 ---

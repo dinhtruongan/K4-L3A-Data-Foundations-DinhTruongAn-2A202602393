@@ -47,7 +47,7 @@ class HeadingChunker:
 
 
 # Personal strategy: switch this line for a controlled comparison.
-CHUNKER = HeadingChunker(chunk_size=600)
+CHUNKER = HeadingChunker(chunk_size=400)
 
 BENCHMARKS = [
     {
@@ -72,13 +72,13 @@ BENCHMARKS = [
         "query": "Học viện Ngoại giao phạt bao nhiêu khi trả sách quá hạn?",
         "gold_answer": "20.000 VNĐ cho mỗi cuốn mỗi ngày.",
         "answer_marker": "20.000 VNĐ cho mỗi cuốn/ngày",
-        "metadata_filter": None,
+        "metadata_filter": {"institution": "dav"},
     },
     {
         "query": "Theo quy định PVU, giảng viên trả tài liệu quá hạn trên một tháng sẽ bị xử lý thế nào?",
         "gold_answer": "Bị đình chỉ sử dụng thư viện trong 01 năm học.",
         "answer_marker": "đình chỉ sử dụng thư viện trong 01 năm học",
-        "metadata_filter": {"audience": "faculty"},
+        "metadata_filter": {"audience": "faculty", "institution": "pvu"},
     },
 ]
 

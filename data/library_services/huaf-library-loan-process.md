@@ -6,6 +6,7 @@ retrieved_at: "2026-09-19"
 document_version: "2022-11-09"
 audience: "all"
 department: "library"
+institution: "huaf"
 category: "borrowing-process"
 language: "vi"
 ---
